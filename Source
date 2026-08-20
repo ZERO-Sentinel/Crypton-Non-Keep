@@ -1,0 +1,1395 @@
+-- Simple Cheat Menu with ESP, Aimbot, and Movement Features for Roblox Made by ZERO Sentinel (V2)
+
+-- Variables
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+
+-- Menu Settings
+local MenuKey = Enum.KeyCode.RightControl
+
+-- ESP Settings
+local ESPEnabled = false
+local SkeletonESP = false
+local BoxESP = false
+local SkeletonRainbow = false
+local BoxRainbow = false
+local DefaultColor = Color3.fromRGB(255, 255, 255)
+local ESPKey = nil
+
+-- Aimbot Settings
+local AimbotEnabled = false
+local AimbotRadiusVisible = false
+local AimbotMode = "Head" -- "Head" or "Body"
+local AimbotRadius = 100
+local AimbotKey = Enum.KeyCode.B
+
+-- Air Strafe Settings
+local AirStrafeEnabled = false
+local AirStrafeKey = nil
+
+-- Speed Settings
+local LoopSpeedEnabled = false
+local SpeedKey = nil
+local LoopSpeedKey = nil
+local DefaultSpeed = 16
+
+-- Spin Settings
+local SpinEnabled = false
+local SpinSpeed = 5
+local SpinKey = nil
+
+-- No Slow Settings
+local NoSlowEnabled = false
+local NoSlowKey = nil
+local NoSlowSpeed = 16
+
+-- Fly Settings
+local FlyEnabled = false
+local FlySpeed = 50
+local bv, bg
+local Flyconnection
+local Keys = {}
+local FlyKey = nil
+local waitingForFlyKey = false
+
+-- NoClip Settings
+local NoClipEnabled = false
+local NoClipKey = nil
+local OriginalCollision = {}
+
+-- Drawings
+local Drawings = {}
+
+-- UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ESPMenu"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local NotificationLabel = Instance.new("TextLabel")
+NotificationLabel.Size = UDim2.new(0, 300, 0, 30)
+NotificationLabel.Position = UDim2.new(0.5, -150, 0, 10)
+NotificationLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+NotificationLabel.BackgroundTransparency = 0.1
+NotificationLabel.BorderSizePixel = 0
+NotificationLabel.Text = "Crypton Hack injected..."
+NotificationLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+NotificationLabel.Font = Enum.Font.SourceSansBold
+NotificationLabel.TextSize = 18
+NotificationLabel.Parent = ScreenGui
+NotificationLabel.ZIndex = 10
+
+local OpenMenuNotificationLabel = Instance.new("TextLabel")
+OpenMenuNotificationLabel.Size = UDim2.new(0, 300, 0, 30)
+OpenMenuNotificationLabel.Position = UDim2.new(0.5, -150, 0, 40)
+OpenMenuNotificationLabel.BackgroundTransparency = 1
+OpenMenuNotificationLabel.BorderSizePixel = 0
+OpenMenuNotificationLabel.Text = "(RightControl to open menu)"
+OpenMenuNotificationLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenMenuNotificationLabel.Font = Enum.Font.SourceSansBold
+OpenMenuNotificationLabel.TextSize = 18
+OpenMenuNotificationLabel.Parent = ScreenGui
+OpenMenuNotificationLabel.ZIndex = 10
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.Visible = false
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Title.BorderSizePixel = 0
+Title.Text = "ESP Menu"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+Title.Parent = MainFrame
+
+local AimbotFrame = Instance.new("Frame")
+AimbotFrame.Size = UDim2.new(0, 300, 0, 320)
+AimbotFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+AimbotFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+AimbotFrame.BorderSizePixel = 0
+AimbotFrame.Parent = ScreenGui
+AimbotFrame.Visible = false
+
+local AimbotTitle = Instance.new("TextLabel")
+AimbotTitle.Size = UDim2.new(1, 0, 0, 30)
+AimbotTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+AimbotTitle.BorderSizePixel = 0
+AimbotTitle.Text = "Aimbot Menu"
+AimbotTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotTitle.Font = Enum.Font.SourceSansBold
+AimbotTitle.TextSize = 18
+AimbotTitle.Parent = AimbotFrame
+
+local MovementFrame = Instance.new("Frame")
+MovementFrame.Size = UDim2.new(0, 300, 0, 320)
+MovementFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MovementFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MovementFrame.BorderSizePixel = 0
+MovementFrame.Parent = ScreenGui
+MovementFrame.Visible = false
+
+local MovementTitle = Instance.new("TextLabel")
+MovementTitle.Size = UDim2.new(1, 0, 0, 30)
+MovementTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MovementTitle.BorderSizePixel = 0
+MovementTitle.Text = "Movement Menu 1"
+MovementTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+MovementTitle.Font = Enum.Font.SourceSansBold
+MovementTitle.TextSize = 18
+MovementTitle.Parent = MovementFrame
+
+local Movement2Frame = Instance.new("Frame")
+Movement2Frame.Size = UDim2.new(0, 300, 0, 320)
+Movement2Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+Movement2Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Movement2Frame.BorderSizePixel = 0
+Movement2Frame.Parent = ScreenGui
+Movement2Frame.Visible = false
+
+local Movement2Title = Instance.new("TextLabel")
+Movement2Title.Size = UDim2.new(1, 0, 0, 30)
+Movement2Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Movement2Title.BorderSizePixel = 0
+Movement2Title.Text = "Movement Menu 2"
+Movement2Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Movement2Title.Font = Enum.Font.SourceSansBold
+Movement2Title.TextSize = 18
+Movement2Title.Parent = Movement2Frame
+
+local KeybindsFrame = Instance.new("Frame")
+KeybindsFrame.Size = UDim2.new(0, 300, 0, 320)
+KeybindsFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+KeybindsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeybindsFrame.BorderSizePixel = 0
+KeybindsFrame.Parent = ScreenGui
+KeybindsFrame.Visible = false
+
+local KeybindsTitle = Instance.new("TextLabel")
+KeybindsTitle.Size = UDim2.new(1, 0, 0, 30)
+KeybindsTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+KeybindsTitle.BorderSizePixel = 0
+KeybindsTitle.Text = "Other Keybinds"
+KeybindsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeybindsTitle.Font = Enum.Font.SourceSansBold
+KeybindsTitle.TextSize = 18
+KeybindsTitle.Parent = KeybindsFrame
+
+local function createButton(text, positionY, parent)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -20, 0, 30)
+    button.Position = UDim2.new(0, 10, 0, positionY)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.SourceSans
+    button.TextSize = 16
+    button.Parent = parent or MainFrame
+    return button
+end
+
+local ESPToggle = createButton("ESP: OFF", 40, MainFrame)
+local SkeletonCheck = createButton("Skeleton ESP: OFF", 80, MainFrame)
+local BoxCheck = createButton("Box ESP: OFF", 120, MainFrame)
+local SkeletonRainbowCheck = createButton("Skeleton Rainbow: OFF", 160, MainFrame)
+local BoxRainbowCheck = createButton("Box Rainbow: OFF", 200, MainFrame)
+local TeamCheckESPButton = createButton("Team Check (ESP): OFF", 240, MainFrame)
+local AimbotToggle = createButton("Aimbot: OFF", 40, AimbotFrame)
+local AimbotRadiusToggle = createButton("Radius Visible: OFF", 80, AimbotFrame)
+local AimbotModeButton = createButton("Mode: Head", 120, AimbotFrame)
+local AimbotKeyLabel = createButton("Key: B", 160, AimbotFrame)
+local AimbotRadiusLabel = createButton("Radius: 100", 200, AimbotFrame)
+local TeamCheckAimbotButton = createButton("Team Check (Aimbot): OFF", 240, AimbotFrame)
+local AirStrafeToggle = createButton("Air Strafe: OFF", 40, MovementFrame)
+local SpeedValueLabel = createButton("Speed: 16", 80, MovementFrame)
+local SpeedButton = createButton("Speed (Highly Bannable)", 120, MovementFrame)
+local LoopSpeedToggle = createButton("Loop Speed (Highly Bannable): OFF", 160, MovementFrame)
+local SpinValueLabel = createButton("Spin Speed: 5", 200, MovementFrame)
+local SpinToggle = createButton("Spin: OFF", 240, MovementFrame)
+local NoSlowToggle = createButton("No Slow: OFF", 40, Movement2Frame)
+local NoClipToggle = createButton("NoClip: OFF", 80, Movement2Frame)
+local SitButton = createButton("Sit", 120, Movement2Frame)
+local FlyKeybind = createButton("Fly Keybind: (Choose Key)", 160, Movement2Frame)
+local FlySpeedLabel = createButton("Fly Speed: 50", 200, Movement2Frame)
+local FlyToggle = createButton("Fly (Highly Bannable): OFF", 240, Movement2Frame)
+local ESPKeyButton = createButton("ESP Key: (Choose Key)", 40, KeybindsFrame)
+local SpeedKeyButton = createButton("Speed Key: (Choose Key)", 80, KeybindsFrame)
+local LoopSpeedKeyButton = createButton("LoopSpeed Key: (Choose Key)", 120, KeybindsFrame)
+local NoClipKeyButton = createButton("NoClip Key: (Choose Key)", 160, KeybindsFrame)
+local SitKeyButton = createButton("Sit Key: (Choose Key)", 200, KeybindsFrame)
+local MenuKeyButton = createButton("Menu Key: RightControl", 240, KeybindsFrame)
+
+local PageFrames = {MainFrame, AimbotFrame, MovementFrame, Movement2Frame, KeybindsFrame}
+local CurrentPage = 1
+local MenuVisible = false
+
+local function UpdateMenuVisibility()
+    for index, frame in ipairs(PageFrames) do
+        frame.Visible = MenuVisible and index == CurrentPage
+    end
+end
+
+local function SetPage(index)
+    CurrentPage = ((index - 1) % #PageFrames) + 1
+    UpdateMenuVisibility()
+end
+
+local function CreatePageNavButtons(parent)
+    local leftButton = Instance.new("TextButton")
+    leftButton.Size = UDim2.new(0, 130, 0, 30)
+    leftButton.Position = UDim2.new(0, 10, 0, 280)
+    leftButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    leftButton.BorderSizePixel = 0
+    leftButton.Text = "<"
+    leftButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    leftButton.Font = Enum.Font.SourceSans
+    leftButton.TextSize = 18
+    leftButton.Parent = parent
+
+    local rightButton = Instance.new("TextButton")
+    rightButton.Size = UDim2.new(0, 130, 0, 30)
+    rightButton.Position = UDim2.new(0, 160, 0, 280)
+    rightButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    rightButton.BorderSizePixel = 0
+    rightButton.Text = ">"
+    rightButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    rightButton.Font = Enum.Font.SourceSans
+    rightButton.TextSize = 18
+    rightButton.Parent = parent
+
+    leftButton.MouseButton1Click:Connect(function()
+        CurrentPage = ((CurrentPage - 2) % #PageFrames) + 1
+        MenuVisible = true
+        UpdateMenuVisibility()
+    end)
+
+    rightButton.MouseButton1Click:Connect(function()
+        CurrentPage = (CurrentPage % #PageFrames) + 1
+        MenuVisible = true
+        UpdateMenuVisibility()
+    end)
+end
+
+for _, frame in ipairs(PageFrames) do
+    CreatePageNavButtons(frame)
+end
+
+local function ToggleESP()
+    ESPEnabled = not ESPEnabled
+    ESPToggle.Text = "ESP: " .. (ESPEnabled and "ON" or "OFF")
+end
+
+local function ToggleSkeleton()
+    SkeletonESP = not SkeletonESP
+    SkeletonCheck.Text = "Skeleton ESP: " .. (SkeletonESP and "ON" or "OFF")
+end
+
+local function ToggleBox()
+    BoxESP = not BoxESP
+    BoxCheck.Text = "Box ESP: " .. (BoxESP and "ON" or "OFF")
+end
+
+local function ToggleSkeletonRainbow()
+    SkeletonRainbow = not SkeletonRainbow
+    SkeletonRainbowCheck.Text = "Skeleton Rainbow: " .. (SkeletonRainbow and "ON" or "OFF")
+end
+
+local function ToggleBoxRainbow()
+    BoxRainbow = not BoxRainbow
+    BoxRainbowCheck.Text = "Box Rainbow: " .. (BoxRainbow and "ON" or "OFF")
+end
+
+local TeamCheckESP = false
+local TeamCheckAimbot = false
+
+local function ToggleTeamCheckESP()
+    TeamCheckESP = not TeamCheckESP
+    TeamCheckESPButton.Text = "Team Check (ESP): " .. (TeamCheckESP and "ON" or "OFF")
+end
+
+local function ToggleTeamCheckAimbot()
+    TeamCheckAimbot = not TeamCheckAimbot
+    TeamCheckAimbotButton.Text = "Team Check (Aimbot): " .. (TeamCheckAimbot and "ON" or "OFF")
+end
+
+local function IsSameTeam(player)
+    if not player or player == LocalPlayer then
+        return false
+    end
+
+    if LocalPlayer.Team and player.Team then
+        return LocalPlayer.Team == player.Team
+    end
+
+    if LocalPlayer.TeamColor and player.TeamColor then
+        return LocalPlayer.TeamColor == player.TeamColor
+    end
+
+    return false
+end
+
+local function ToggleAimbot()
+    AimbotEnabled = not AimbotEnabled
+    AimbotToggle.Text = "Aimbot: " .. (AimbotEnabled and "ON" or "OFF")
+end
+
+local function ToggleAimbotRadius()
+    AimbotRadiusVisible = not AimbotRadiusVisible
+    AimbotRadiusToggle.Text = "Radius Visible: " .. (AimbotRadiusVisible and "ON" or "OFF")
+end
+
+local function ToggleAimbotMode()
+    AimbotMode = AimbotMode == "Head" and "Body" or "Head"
+    AimbotModeButton.Text = "Mode: " .. AimbotMode
+end
+
+local function ToggleAirStrafe()
+    AirStrafeEnabled = not AirStrafeEnabled
+    AirStrafeToggle.Text = "Air Strafe: " .. (AirStrafeEnabled and "ON" or "OFF")
+end
+
+local function GetHumanoidSpeed()
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            return humanoid.WalkSpeed
+        end
+    end
+    return 16 -- Default Roblox walk speed
+end
+
+local function GetSpeedValueFromLabel()
+    local speedText = SpeedValueLabel.Text
+    local speed = tonumber(speedText:match("(%d+)") or "")
+    return speed or GetHumanoidSpeed()
+end
+
+local function ApplyDesiredSpeed()
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = math.clamp(GetSpeedValueFromLabel(), 1, 500)
+        end
+    end
+end
+
+local function ResetWalkSpeed()
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = DefaultSpeed
+        end
+    end
+end
+
+local function HandleSpeedButton()
+    ApplyDesiredSpeed()
+    SpeedValueLabel.Text = "Speed: 16"
+end
+
+local SpeedInputActive = false
+local SpeedInputText = ""
+local SpeedKeyDigits = {
+    Zero = "0", One = "1", Two = "2", Three = "3",
+    Four = "4", Five = "5", Six = "6", Seven = "7",
+    Eight = "8", Nine = "9",
+    KeypadZero = "0", KeypadOne = "1", KeypadTwo = "2", KeypadThree = "3",
+    KeypadFour = "4", KeypadFive = "5", KeypadSix = "6",
+    KeypadSeven = "7", KeypadEight = "8", KeypadNine = "9"
+}
+
+local function UpdateSpeedInputLabel()
+    SpeedValueLabel.Text = "Speed: " .. (SpeedInputText ~= "" and SpeedInputText or "")
+end
+
+local function FinishSpeedInput(save)
+    SpeedInputActive = false
+    local currentSpeed = GetSpeedValueFromLabel()
+    if save then
+        local value = tonumber(SpeedInputText)
+        value = value and math.clamp(value, 1, 500) or currentSpeed
+        SpeedValueLabel.Text = "Speed: " .. value
+    else
+        SpeedValueLabel.Text = "Speed: " .. currentSpeed
+    end
+    SpeedInputText = ""
+    if save and LoopSpeedEnabled then
+        ApplyDesiredSpeed()
+    end
+end
+
+local function StartSpeedInput()
+    SpeedInputActive = true
+    SpeedInputText = ""
+    SpeedValueLabel.Text = "Speed: "
+end
+
+local function ToggleLoopSpeed()
+    if not LoopSpeedEnabled then
+        DefaultSpeed = GetHumanoidSpeed()
+    end
+    LoopSpeedEnabled = not LoopSpeedEnabled
+    LoopSpeedToggle.Text = "Loop Speed (Highly Bannable): " .. (LoopSpeedEnabled and "ON" or "OFF")
+    if LoopSpeedEnabled then
+        ApplyDesiredSpeed()
+    else
+        ResetWalkSpeed()
+        if NoSlowEnabled then
+            NoSlowSpeed = DefaultSpeed
+        end
+    end
+end
+
+local SpinInputActive = false
+local SpinInputText = ""
+local SpinKeyDigits = {
+    Zero = "0", One = "1", Two = "2", Three = "3",
+    Four = "4", Five = "5", Six = "6", Seven = "7",
+    Eight = "8", Nine = "9",
+    KeypadZero = "0", KeypadOne = "1", KeypadTwo = "2", KeypadThree = "3",
+    KeypadFour = "4", KeypadFive = "5", KeypadSix = "6",
+    KeypadSeven = "7", KeypadEight = "8", KeypadNine = "9"
+}
+
+local FlyInputActive = false
+local FlyInputText = ""
+local FlyKeyDigits = {
+    Zero = "0", One = "1", Two = "2", Three = "3",
+    Four = "4", Five = "5", Six = "6", Seven = "7",
+    Eight = "8", Nine = "9",
+    KeypadZero = "0", KeypadOne = "1", KeypadTwo = "2", KeypadThree = "3",
+    KeypadFour = "4", KeypadFive = "5", KeypadSix = "6",
+    KeypadSeven = "7", KeypadEight = "8", KeypadNine = "9"
+}
+
+local function UpdateSpinInputLabel()
+    SpinValueLabel.Text = "Spin Speed: " .. (SpinInputText ~= "" and SpinInputText or "")
+end
+
+local function UpdateFlyInputLabel()
+    FlySpeedLabel.Text = "Fly Speed: " .. (FlyInputText ~= "" and FlyInputText or "")
+end
+
+local function FinishSpinInput(save)
+    SpinInputActive = false
+    if save and SpinInputText ~= "" then
+        local value = tonumber(SpinInputText)
+        if value then
+            value = math.clamp(value, 1, 360)
+            SpinSpeed = value
+            SpinValueLabel.Text = "Spin Speed: " .. value
+            if SpinEnabled then
+                ApplySpin()
+            end
+        else
+            SpinValueLabel.Text = "Spin Speed: " .. SpinSpeed
+        end
+    else
+        SpinValueLabel.Text = "Spin Speed: " .. SpinSpeed
+    end
+    SpinInputText = ""
+end
+
+local function StartSpinInput()
+    SpinInputActive = true
+    SpinInputText = ""
+    SpinValueLabel.Text = "Spin Speed: "
+end
+
+local function StartFlyInput()
+    FlyInputActive = true
+    FlyInputText = ""
+    FlySpeedLabel.Text = "Fly Speed: "
+end
+
+local function FinishFlyInput(save)
+    FlyInputActive = false
+    if save and FlyInputText ~= "" then
+        local value = tonumber(FlyInputText)
+        if value then
+            value = math.clamp(value, 1, 500)
+            FlySpeed = value
+            FlySpeedLabel.Text = "Fly Speed: " .. value
+            if FlyEnabled then
+                ApplyFly()
+            end
+        else
+            FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed
+        end
+    else
+        FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed
+    end
+    FlyInputText = ""
+end
+
+local function ToggleSpin()
+    SpinEnabled = not SpinEnabled
+    SpinToggle.Text = "Spin: " .. (SpinEnabled and "ON" or "OFF")
+    if SpinEnabled then
+        ApplySpin()
+    else
+        if LocalPlayer.Character then
+            local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or LocalPlayer.Character:FindFirstChildWhichIsA("BasePart")
+            if root then
+                for _, v in pairs(root:GetChildren()) do
+                    if v:IsA("BodyAngularVelocity") and v.Name == "Spinning" then
+                        v:Destroy()
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function GetSpinSpeedValueFromLabel()
+    local spinText = SpinValueLabel.Text
+    local speed = tonumber(spinText:match("(%d+)") or "")
+    return speed or SpinSpeed
+end
+
+local function GetFlySpeedValueFromLabel()
+    local flyText = FlySpeedLabel.Text
+    local speed = tonumber(flyText:match("(%d+)") or "")
+    return speed or FlySpeed
+end
+
+local function ApplySpin()
+    if not LocalPlayer.Character then return end
+    local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or LocalPlayer.Character:FindFirstChildWhichIsA("BasePart")
+    if not root then return end
+
+    for _, v in pairs(root:GetChildren()) do
+        if v:IsA("BodyAngularVelocity") and v.Name == "Spinning" then
+            v:Destroy()
+        end
+    end
+
+    if SpinEnabled then
+        local spin = Instance.new("BodyAngularVelocity")
+        spin.Name = "Spinning"
+        spin.Parent = root
+        spin.MaxTorque = Vector3.new(0, math.huge, 0)
+        local speed = GetSpinSpeedValueFromLabel() or SpinSpeed
+        spin.AngularVelocity = Vector3.new(0, math.rad(speed*20), 0)
+    end
+end
+
+local function ApplyFly()
+    if FlyEnabled then
+        if Flyconnection then
+            Flyconnection:Disconnect()
+            Flyconnection=nil
+        end
+        if bv then
+            bv:Destroy()
+            bv = nil
+        end
+        if bg then
+            bg:Destroy()
+            bg = nil
+        end
+        bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Parent = HRP
+
+        bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bg.P = 50000
+        bg.Parent = HRP
+
+        Flyconnection = RunService.RenderStepped:Connect(function()
+            local cam = workspace.CurrentCamera
+
+            bg.CFrame = CFrame.lookAt(HRP.Position, HRP.Position + cam.CFrame.LookVector)
+
+            local direction = Vector3.zero
+
+            if Keys[Enum.KeyCode.W] then
+                direction += cam.CFrame.LookVector
+            end
+
+            if Keys[Enum.KeyCode.S] then
+                direction -= cam.CFrame.LookVector
+            end
+
+            if Keys[Enum.KeyCode.D] then
+                direction += cam.CFrame.RightVector
+            end
+
+            if Keys[Enum.KeyCode.A] then
+                direction -= cam.CFrame.RightVector
+            end
+
+            if Keys[Enum.KeyCode.E] then
+                direction += Vector3.new(0, 1, 0)
+            end
+
+            if Keys[Enum.KeyCode.Q] then
+                direction -= Vector3.new(0, 1, 0)
+            end
+
+            if direction.Magnitude > 0 then
+                bv.Velocity = direction.Unit * FlySpeed
+            else
+                bv.Velocity = Vector3.zero
+            end
+        end)
+    else
+        if Flyconnection then
+            Flyconnection:Disconnect()
+            Flyconnection=nil
+        end
+        if bv then
+            bv:Destroy()
+            bv=nil
+        end
+        if bg then 
+            bg:Destroy()
+            bg=nil
+        end
+    end
+end
+
+local function ToggleFly()
+    FlyEnabled = not FlyEnabled
+    FlyToggle.Text = "Fly (Highly Bannable): " .. (FlyEnabled and "ON" or "OFF")
+    ApplyFly()
+end
+
+local function ApplyNoSlow()
+    if LoopSpeedEnabled then
+        NoSlowSpeed = math.clamp(GetSpeedValueFromLabel(), 1, 500)
+    end
+    if NoSlowEnabled then
+        if LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = NoSlowSpeed
+            end
+        end
+    else
+        ResetWalkSpeed()
+    end
+end
+
+local function ToggleNoSlow()
+    if LoopSpeedEnabled then
+        NoSlowSpeed = math.clamp(GetSpeedValueFromLabel(), 1, 500)
+    else
+        NoSlowSpeed = GetHumanoidSpeed()
+    end
+    NoSlowEnabled = not NoSlowEnabled
+    ApplyNoSlow()
+    NoSlowToggle.Text = "No Slow: " .. (NoSlowEnabled and "ON" or "OFF")
+end
+
+Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    Character = character
+    HRP = Character:WaitForChild("HumanoidRootPart")
+    if LoopSpeedEnabled then
+        ApplyDesiredSpeed()
+    end
+    if SpinEnabled then
+        ApplySpin()
+    end
+    if FlyEnabled then
+        ApplyFly()
+    end
+    if NoClipEnabled then
+        ApplyNoClip()
+    end
+    if NoSlowEnabled then
+        ApplyNoSlow()
+    end
+end)
+
+local waitingForKey = false
+local waitingForFlyKey = false
+
+local function ShowMessage(text)
+    local msgLabel = Instance.new("TextLabel")
+    msgLabel.Size = UDim2.new(0, 300, 0, 30)
+    msgLabel.Position = UDim2.new(0.5, -150, 0, 50)
+    msgLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    msgLabel.BackgroundTransparency = 0.1
+    msgLabel.BorderSizePixel = 0
+    msgLabel.Text = text
+    msgLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    msgLabel.Font = Enum.Font.SourceSansBold
+    msgLabel.TextSize = 18
+    msgLabel.Parent = ScreenGui
+    msgLabel.ZIndex = 10
+    spawn(function()
+        wait(2)
+        msgLabel:Destroy()
+    end)
+end
+
+local function AimbotChangeKey()
+    waitingForKey = true
+    AimbotKeyLabel.Text = "Press a key..."
+end
+
+local function IncreaseRadius()
+    AimbotRadius = math.min(AimbotRadius + 50, 500)
+    AimbotRadiusLabel.Text = "Radius: " .. AimbotRadius
+end
+
+local function DecreaseRadius()
+    AimbotRadius = math.max(AimbotRadius - 50, 50)
+    AimbotRadiusLabel.Text = "Radius: " .. AimbotRadius
+end
+
+local function ApplyNoClip()
+    if NoClipEnabled then
+        if NoClipconnection then
+            NoClipconnection:Disconnect()
+            NoClipconnection = nil
+        end
+        NoClipconnection = RunService.Stepped:Connect(function()
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in ipairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        if OriginalCollision[part] == nil then
+                            OriginalCollision[part] = part.CanCollide
+                        end
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        if NoClipconnection then
+            NoClipconnection:Disconnect()
+            NoClipconnection = nil
+        end
+        local character = game.Players.LocalPlayer.Character
+        if character then
+            for part, collide in pairs(OriginalCollision) do
+                if part and part.Parent then
+                    part.CanCollide = collide
+                end
+            end
+        end
+        table.clear(OriginalCollision)
+    end
+end
+
+local function ToggleNoClip()
+    NoClipEnabled = not NoClipEnabled
+    NoClipToggle.Text = "NoClip: " .. (NoClipEnabled and "ON" or "OFF")
+    ApplyNoClip()
+end
+
+Players.LocalPlayer.CharacterRemoving:Connect(function()
+    if Flyconnection then
+        Flyconnection:Disconnect()
+        Flyconnection = nil
+    end
+
+    if NoClipConnection then
+        NoClipConnection:Disconnect()
+        NoClipConnection = nil
+    end
+
+    Spin = nil
+    bv = nil
+    bg = nil
+    table.clear(OriginalCollision)
+end)
+
+-- Buttons Attachments
+ESPToggle.MouseButton1Click:Connect(ToggleESP)
+SkeletonCheck.MouseButton1Click:Connect(ToggleSkeleton)
+BoxCheck.MouseButton1Click:Connect(ToggleBox)
+SkeletonRainbowCheck.MouseButton1Click:Connect(ToggleSkeletonRainbow)
+BoxRainbowCheck.MouseButton1Click:Connect(ToggleBoxRainbow)
+AimbotToggle.MouseButton1Click:Connect(ToggleAimbot)
+AimbotRadiusToggle.MouseButton1Click:Connect(ToggleAimbotRadius)
+AimbotModeButton.MouseButton1Click:Connect(ToggleAimbotMode)
+AimbotKeyLabel.MouseButton1Click:Connect(AimbotChangeKey)
+AimbotRadiusLabel.MouseButton1Click:Connect(IncreaseRadius)
+AimbotRadiusLabel.MouseButton2Click:Connect(DecreaseRadius)
+SpeedValueLabel.MouseButton1Click:Connect(StartSpeedInput)
+SpeedButton.MouseButton1Click:Connect(HandleSpeedButton)
+LoopSpeedToggle.MouseButton1Click:Connect(ToggleLoopSpeed)
+AirStrafeToggle.MouseButton1Click:Connect(ToggleAirStrafe)
+TeamCheckESPButton.MouseButton1Click:Connect(ToggleTeamCheckESP)
+TeamCheckAimbotButton.MouseButton1Click:Connect(ToggleTeamCheckAimbot)
+SpinToggle.MouseButton1Click:Connect(ToggleSpin)
+SpinValueLabel.MouseButton1Click:Connect(StartSpinInput)
+FlySpeedLabel.MouseButton1Click:Connect(StartFlyInput)
+NoSlowToggle.MouseButton1Click:Connect(ToggleNoSlow)
+FlyToggle.MouseButton1Click:Connect(ToggleFly)
+NoClipToggle.MouseButton1Click:Connect(ToggleNoClip)
+SitButton.MouseButton1Click:Connect(function()
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Sit = true
+        end
+    end
+end)
+FlyKeybind.MouseButton1Click:Connect(function()
+    waitingForFlyKey = true
+    FlyKeybind.Text = "Press a key..."
+end)
+ESPKeyButton.MouseButton1Click:Connect(function()
+    waitingForESPKey = true
+    ESPKeyButton.Text = "Press a key..."
+end)
+SpeedKeyButton.MouseButton1Click:Connect(function()
+    waitingForSpeedKey = true
+    SpeedKeyButton.Text = "Press a key..."
+end)
+LoopSpeedKeyButton.MouseButton1Click:Connect(function()
+    waitingForLoopSpeedKey = true
+    LoopSpeedKeyButton.Text = "Press a key..."
+end)
+NoClipKeyButton.MouseButton1Click:Connect(function()
+    waitingForNoClipKey = true
+    NoClipKeyButton.Text = "Press a key..."
+end)
+SitKeyButton.MouseButton1Click:Connect(function()
+    waitingForSitKey = true
+    SitKeyButton.Text = "Press a key..."
+end)
+MenuKeyButton.MouseButton1Click:Connect(function()
+    waitingForMenuKey = true
+    MenuKeyButton.Text = "Press a key..."
+end)
+
+UpdateMenuVisibility()
+
+-- Keybinds
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if SpinInputActive then
+        if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+            FinishSpinInput(true)
+        elseif input.KeyCode == Enum.KeyCode.Escape then
+            FinishSpinInput(false)
+        elseif input.KeyCode == Enum.KeyCode.Backspace then
+            SpinInputText = SpinInputText:sub(1, -2)
+            UpdateSpinInputLabel()
+        else
+            local digit = SpinKeyDigits[input.KeyCode.Name]
+            if digit and #SpinInputText < 3 then
+                SpinInputText = SpinInputText .. digit
+                UpdateSpinInputLabel()
+            end
+        end
+        return
+    end
+    if SpeedInputActive then
+        if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+            FinishSpeedInput(true)
+        elseif input.KeyCode == Enum.KeyCode.Escape then
+            FinishSpeedInput(false)
+        elseif input.KeyCode == Enum.KeyCode.Backspace then
+            SpeedInputText = SpeedInputText:sub(1, -2)
+            UpdateSpeedInputLabel()
+        else
+            local digit = SpeedKeyDigits[input.KeyCode.Name]
+            if digit and #SpeedInputText < 3 then
+                SpeedInputText = SpeedInputText .. digit
+                UpdateSpeedInputLabel()
+            end
+        end
+        return
+    end
+    if FlyInputActive then
+        if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+            FinishFlyInput(true)
+        elseif input.KeyCode == Enum.KeyCode.Escape then
+            FinishFlyInput(false)
+        elseif input.KeyCode == Enum.KeyCode.Backspace then
+            FlyInputText = FlyInputText:sub(1, -2)
+            UpdateFlyInputLabel()
+        else
+            local digit = FlyKeyDigits[input.KeyCode.Name]
+            if digit and #FlyInputText < 3 then
+                FlyInputText = FlyInputText .. digit
+                UpdateFlyInputLabel()
+            end
+        end
+        return
+    end
+    if waitingForKey then
+        if input.KeyCode == MenuKey then
+            AimbotKey = Enum.KeyCode.B
+            AimbotKeyLabel.Text = "Key: B"
+            ShowMessage("RightControl key is reserved for menu only!")
+        else
+            AimbotKey = input.KeyCode
+            AimbotKeyLabel.Text = "Key: " .. input.KeyCode.Name
+        end
+        waitingForKey = false
+        return
+    end
+    if waitingForFlyKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if FlyKey then
+                FlyKeybind.Text = "Fly Keybind: " .. FlyKey.Name
+            else
+                FlyKeybind.Text = "Fly Keybind (Choose Key): ..."
+            end
+        else
+            FlyKey = input.KeyCode
+            FlyKeybind.Text = "Fly Keybind: " .. input.KeyCode.Name
+        end
+        waitingForFlyKey = false
+        return
+    end
+    if waitingForESPKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if ESPKey then
+                ESPKeyButton.Text = "ESP Key: " .. ESPKey.Name
+            else
+                ESPKeyButton.Text = "ESP Key (Choose Key): ..."
+            end
+        else
+            ESPKey = input.KeyCode
+            ESPKeyButton.Text = "ESP Key: " .. input.KeyCode.Name
+        end
+        waitingForESPKey = false
+        return
+    end
+    if waitingForSpeedKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if SpeedKey then
+                SpeedKeyButton.Text = "Speed Key: " .. SpeedKey.Name
+            else
+                SpeedKeyButton.Text = "Speed Key (Choose Key): ..."
+            end
+        else
+            SpeedKey = input.KeyCode
+            SpeedKeyButton.Text = "Speed Key: " .. input.KeyCode.Name
+        end
+        waitingForSpeedKey = false
+        return
+    end
+    if waitingForLoopSpeedKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if LoopSpeedKey then
+                LoopSpeedKeyButton.Text = "LoopSpeed Key: " .. LoopSpeedKey.Name
+            else
+                LoopSpeedKeyButton.Text = "LoopSpeed Key (Choose Key): ..."
+            end
+        else
+            LoopSpeedKey = input.KeyCode
+            LoopSpeedKeyButton.Text = "LoopSpeed Key: " .. input.KeyCode.Name
+        end
+        waitingForLoopSpeedKey = false
+        return
+    end
+    if waitingForNoClipKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if NoClipKey then
+                NoClipKeyButton.Text = "NoClip Key: " .. NoClipKey.Name
+            else
+                NoClipKeyButton.Text = "NoClip Key (Choose Key): ..."
+            end
+        else
+            NoClipKey = input.KeyCode
+            NoClipKeyButton.Text = "NoClip Key: " .. input.KeyCode.Name
+        end
+        waitingForNoClipKey = false
+        return
+    end
+    if waitingForSitKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if SitKey then
+                SitKeyButton.Text = "Sit Key: " .. SitKey.Name
+            else
+                SitKeyButton.Text = "Sit Key (Choose Key): ..."
+            end
+        else
+            SitKey = input.KeyCode
+            SitKeyButton.Text = "Sit Key: " .. input.KeyCode.Name
+        end
+        waitingForSitKey = false
+        return
+    end
+    if waitingForMenuKey then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            if MenuKey then
+                MenuKeyButton.Text = "Menu Key: " .. MenuKey.Name
+            else
+                MenuKeyButton.Text = "Menu Key (Choose Key): ..."
+            end
+        else
+            MenuKey = input.KeyCode
+            MenuKeyButton.Text = "Menu Key: " .. input.KeyCode.Name
+        end
+        waitingForMenuKey = false
+        return
+    end
+    if input.KeyCode == MenuKey then
+        MenuVisible = not MenuVisible
+        if MenuVisible then
+            SetPage(CurrentPage)
+        else
+            UpdateMenuVisibility()
+        end
+    elseif input.KeyCode == AimbotKey then
+        ToggleAimbot()
+    elseif FlyKey and input.KeyCode == FlyKey then
+        ToggleFly()
+    elseif input.KeyCode == ESPKey then
+        ToggleESP()
+    elseif input.KeyCode == SpeedKey then
+        ApplyDesiredSpeed()
+    elseif input.KeyCode == LoopSpeedKey then
+        ToggleLoopSpeed()
+    elseif input.KeyCode == NoClipKey then
+        ToggleNoClip()
+    elseif input.KeyCode == SitKey then
+        if LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.Sit = true
+            end
+        end
+    end
+    Keys[input.KeyCode] = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    Keys[input.KeyCode] = nil
+end)
+
+local function GetColor(rainbow)
+    if rainbow then
+        return Color3.fromHSV(tick() % 1, 1, 1)
+    else
+        return DefaultColor
+    end
+end
+
+local function HidePlayerDrawings(player)
+    for key, drawing in pairs(Drawings) do
+        if string.sub(key, 1, #player.Name) == player.Name then
+            drawing.Visible = false
+        end
+    end
+end
+
+local function GetBoundingBox(character)
+    local parts = {
+        "Head", "UpperTorso", "LowerTorso", "Torso",
+        "LeftUpperArm", "RightUpperArm", "LeftArm", "RightArm",
+        "LeftUpperLeg", "RightUpperLeg", "LeftLeg", "RightLeg",
+        "LeftFoot", "RightFoot"
+    }
+    local points = {}
+
+    for _, partName in ipairs(parts) do
+        local part = character:FindFirstChild(partName)
+        if part and part:IsA("BasePart") then
+            local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+            if onScreen then
+                table.insert(points, Vector2.new(screenPos.X, screenPos.Y))
+            end
+        end
+    end
+
+    if #points == 0 then
+        return nil
+    end
+
+    local minX, minY = points[1].X, points[1].Y
+    local maxX, maxY = minX, minY
+    for i = 2, #points do
+        local point = points[i]
+        if point.X < minX then minX = point.X end
+        if point.Y < minY then minY = point.Y end
+        if point.X > maxX then maxX = point.X end
+        if point.Y > maxY then maxY = point.Y end
+    end
+
+    return minX - 4, minY - 4, (maxX - minX) + 8, (maxY - minY) + 8
+end
+
+local function CreateOrGetDrawing(key, kind)
+    if Drawings[key] and Drawings[key].Visible ~= nil then
+        return Drawings[key]
+    end
+    local drawing = Drawing.new(kind)
+    Drawings[key] = drawing
+    return drawing
+end
+
+local function DrawESP(player)
+    if player == LocalPlayer or not player.Character then
+        return
+    end
+
+    if TeamCheckESP and IsSameTeam(player) then
+        HidePlayerDrawings(player)
+        return
+    end
+
+    local character = player.Character
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        HidePlayerDrawings(player)
+        return
+    end
+
+    local rootPos, onScreen = Camera:WorldToViewportPoint(humanoidRootPart.Position)
+    if not onScreen then
+        HidePlayerDrawings(player)
+        return
+    end
+
+    if BoxESP then
+        local left, top, width, height = GetBoundingBox(character)
+        if left and top and width and height then
+            local box = CreateOrGetDrawing(player.Name .. "Box", "Square")
+            box.Position = Vector2.new(left, top)
+            box.Size = Vector2.new(math.max(width, 10), math.max(height, 10))
+            box.Color = GetColor(BoxRainbow)
+            box.Thickness = 2
+            box.Filled = false
+            box.Visible = true
+        else
+            if Drawings[player.Name .. "Box"] then
+                Drawings[player.Name .. "Box"].Visible = false
+            end
+        end
+    else
+        if Drawings[player.Name .. "Box"] then
+            Drawings[player.Name .. "Box"].Visible = false
+        end
+    end
+
+    if SkeletonESP then
+        local parts = {
+            Head = character:FindFirstChild("Head"),
+            UpperTorso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"),
+            LowerTorso = character:FindFirstChild("LowerTorso") or character:FindFirstChild("Torso"),
+            LeftArm = character:FindFirstChild("LeftUpperArm") or character:FindFirstChild("Left Arm"),
+            RightArm = character:FindFirstChild("RightUpperArm") or character:FindFirstChild("Right Arm"),
+            LeftLeg = character:FindFirstChild("LeftUpperLeg") or character:FindFirstChild("Left Leg"),
+            RightLeg = character:FindFirstChild("RightUpperLeg") or character:FindFirstChild("Right Leg")
+        }
+
+        local connections = {
+            {"Head", "UpperTorso"},
+            {"UpperTorso", "LowerTorso"},
+            {"UpperTorso", "LeftArm"},
+            {"UpperTorso", "RightArm"},
+            {"LowerTorso", "LeftLeg"},
+            {"LowerTorso", "RightLeg"}
+        }
+
+        for _, conn in ipairs(connections) do
+            local partA = parts[conn[1]]
+            local partB = parts[conn[2]]
+            local lineKey = player.Name .. conn[1] .. conn[2]
+
+            if partA and partB then
+                local posA, visibleA = Camera:WorldToViewportPoint(partA.Position)
+                local posB, visibleB = Camera:WorldToViewportPoint(partB.Position)
+                if visibleA and visibleB then
+                    local line = CreateOrGetDrawing(lineKey, "Line")
+                    line.From = Vector2.new(posA.X, posA.Y)
+                    line.To = Vector2.new(posB.X, posB.Y)
+                    line.Color = GetColor(SkeletonRainbow)
+                    line.Thickness = 2
+                    line.Visible = true
+                else
+                    if Drawings[lineKey] then
+                        Drawings[lineKey].Visible = false
+                    end
+                end
+            else
+                if Drawings[lineKey] then
+                    Drawings[lineKey].Visible = false
+                end
+            end
+        end
+    else
+        for _, conn in ipairs({"HeadUpperTorso", "UpperTorsoLowerTorso", "UpperTorsoLeftArm", "UpperTorsoRightArm", "LowerTorsoLeftLeg", "LowerTorsoRightLeg"}) do
+            if Drawings[player.Name .. conn] then
+                Drawings[player.Name .. conn].Visible = false
+            end
+        end
+    end
+end
+
+local function GetClosestPlayerInRadius()
+    local closestPlayer = nil
+    local closestDistance = AimbotRadius
+    local center = Camera.ViewportSize / 2
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and not (TeamCheckAimbot and IsSameTeam(player)) then
+            local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(humanoidRootPart.Position)
+                if onScreen then
+                    local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local function AimbotSnap()
+    if not AimbotEnabled or not LocalPlayer.Character then
+        return
+    end
+
+    local targetPlayer = GetClosestPlayerInRadius()
+    if targetPlayer and targetPlayer.Character then
+        local targetPart = nil
+        if AimbotMode == "Head" then
+            targetPart = targetPlayer.Character:FindFirstChild("Head")
+        else
+            targetPart = targetPlayer.Character:FindFirstChild("UpperTorso") or targetPlayer.Character:FindFirstChild("Torso")
+        end
+
+        if targetPart then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPart.Position)
+        end
+    end
+end
+
+-- Handle players entering and exiting ESP and Aimbot
+Players.PlayerAdded:Connect(function(player)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    HidePlayerDrawings(player)
+end)
+
+RunService.RenderStepped:Connect(function()
+    if ESPEnabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            DrawESP(player)
+        end
+    else
+        for _, drawing in pairs(Drawings) do
+            drawing.Visible = false
+        end
+    end
+    if LoopSpeedEnabled then
+        ApplyDesiredSpeed()
+    end
+    if SpinEnabled then
+        ApplySpin()
+    end
+    if NoSlowEnabled then
+        ApplyNoSlow()
+    end
+
+    if AimbotRadiusVisible and LocalPlayer.Character then
+        local radiusCircle = CreateOrGetDrawing("AimbotRadius", "Circle")
+        radiusCircle.Position = Camera.ViewportSize / 2
+        radiusCircle.Radius = AimbotRadius
+        radiusCircle.Color = AimbotEnabled and Color3.fromRGB(0, 0, 139) or Color3.fromRGB(255, 255, 255)
+        radiusCircle.Thickness = 2
+        radiusCircle.Filled = false
+        radiusCircle.Visible = true
+    else
+        if Drawings["AimbotRadius"] then
+            Drawings["AimbotRadius"].Visible = false
+        end
+    end
+
+    AimbotSnap()
+end)
+
+spawn(function()
+    wait(3)
+    if NotificationLabel and NotificationLabel.Parent then
+        NotificationLabel:Destroy()
+        OpenMenuNotificationLabel:Destroy()
+    end
+end)
+
+-- Air Strafe implementation
+local function isAirborne(humanoid)
+    local state = humanoid:GetState()
+    return state == Enum.HumanoidStateType.Freefall
+        or state == Enum.HumanoidStateType.FallingDown
+        or state == Enum.HumanoidStateType.Jumping
+end
+
+local function onCharacterAdded(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+
+    RunService.Heartbeat:Connect(function()
+        if not humanoid or not rootPart then return end
+
+        if AirStrafeEnabled and NoSlowEnabled then
+            local moveDir = humanoid.MoveDirection
+            if moveDir.Magnitude > 0.1 then
+                local horizontal = Vector3.new(moveDir.X, 0, moveDir.Z)
+                if horizontal.Magnitude > 0 then
+                    horizontal = horizontal.Unit
+                    local desiredVelocity = horizontal * humanoid.WalkSpeed
+                    rootPart.Velocity = Vector3.new(desiredVelocity.X, rootPart.Velocity.Y, desiredVelocity.Z)
+                end
+            else
+                rootPart.Velocity = Vector3.new(0, rootPart.Velocity.Y, 0)
+            end
+        end
+
+        if AirStrafeEnabled and isAirborne(humanoid) then
+            local moveDir = humanoid.MoveDirection
+            if moveDir.Magnitude > 0.1 then
+                local horizontal = Vector3.new(moveDir.X, 0, moveDir.Z)
+                if horizontal.Magnitude > 0 then
+                    horizontal = horizontal.Unit
+                    local desiredVelocity = horizontal * humanoid.WalkSpeed
+                    rootPart.Velocity = Vector3.new(desiredVelocity.X, rootPart.Velocity.Y, desiredVelocity.Z)
+                end
+            else
+                rootPart.Velocity = Vector3.new(0, rootPart.Velocity.Y, 0)
+            end
+        end
+
+        if NoSlowEnabled and humanoid.FloorMaterial ~= Enum.Material.Air then
+            local moveDir = humanoid.MoveDirection
+            if moveDir.Magnitude > 0.1 then
+                local horizontal = Vector3.new(moveDir.X, 0, moveDir.Z)
+                if horizontal.Magnitude > 0 then
+                    horizontal = horizontal.Unit
+                    local desiredVelocity = horizontal * humanoid.WalkSpeed
+                    rootPart.Velocity = Vector3.new(desiredVelocity.X, rootPart.Velocity.Y, desiredVelocity.Z)
+                end
+            else
+                rootPart.Velocity = Vector3.new(0, rootPart.Velocity.Y, 0)
+            end
+        end
+    end)
+end
+
+if LocalPlayer.Character then
+    onCharacterAdded(LocalPlayer.Character)
+end
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
